@@ -1,0 +1,9 @@
+stages:
+  - test
+
+test-python:
+  stage: test
+  tags:
+    - fahmin
+  script:
+    - python3 main.py
