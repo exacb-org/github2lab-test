@@ -15,3 +15,13 @@ jobs:
 
       - name: Show current commit ID
         run: git rev-parse HEAD
+
+      - name: Push commit to GitLab CI branch
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          CI_BRANCH="ci/${GITHUB_SHA}"
+          GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git"
+
+          git remote add gitlab "$GITLAB_URL"
+          git push gitlab "HEAD:refs/heads/${CI_BRANCH}"
