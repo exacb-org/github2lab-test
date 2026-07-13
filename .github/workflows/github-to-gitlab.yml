@@ -6,9 +6,12 @@ on:
       - main
 
 jobs:
-  test-github-action:
+  send-to-gitlab:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Print test message
-        run: echo "GitHub Action started successfully"
+      - name: Download GitHub repository
+        uses: actions/checkout@v6
+
+      - name: Show current commit
+        run: git rev-parse HEAD
