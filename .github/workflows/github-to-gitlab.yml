@@ -13,5 +13,5 @@ jobs:
       - name: Download GitHub repository
         uses: actions/checkout@v6
 
-      - name: Show current commit
+      - name: Show current commit ID
         run: git rev-parse HEAD
