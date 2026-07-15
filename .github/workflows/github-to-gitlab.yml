@@ -27,3 +27,16 @@ jobs:
 
           git remote add gitlab "$GITLAB_URL"
           git push gitlab "HEAD:refs/heads/${CI_BRANCH}"
+
+      - name: Find GitLab pipeline
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
+          CI_BRANCH="ci/${GITHUB_SHA}"
+
+          echo "Looking for GitLab pipeline for branch: ${CI_BRANCH}"
+
+          curl --fail --silent --show-error \
+            --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+            "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines?ref=${CI_BRANCH}"
