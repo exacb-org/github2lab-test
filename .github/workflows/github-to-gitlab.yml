@@ -62,3 +62,40 @@ jobs:
 
           echo "GitLab pipeline was not found."
           exit 1
+
+      - name: Wait for GitLab pipeline result
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          PIPELINE_ID: ${{ steps.gitlab-pipeline.outputs.pipeline_id }}
+        run: |
+          ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
+
+          echo "Waiting for GitLab pipeline ${PIPELINE_ID} to finish"
+
+          for attempt in {1..30}; do
+            RESPONSE=$(curl --fail --silent --show-error \
+              --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+              "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines/${PIPELINE_ID}")
+
+            PIPELINE_STATUS=$(echo "$RESPONSE" | jq -r '.status')
+
+            echo "Current GitLab pipeline status: ${PIPELINE_STATUS}"
+
+            if [ "$PIPELINE_STATUS" = "success" ]; then
+              echo "GitLab pipeline passed."
+              exit 0
+            fi
+
+            if [ "$PIPELINE_STATUS" = "failed" ] || \
+               [ "$PIPELINE_STATUS" = "canceled" ] || \
+               [ "$PIPELINE_STATUS" = "skipped" ]; then
+              echo "GitLab pipeline finished with status: ${PIPELINE_STATUS}"
+              exit 1
+            fi
+
+            echo "Pipeline is still running. Attempt ${attempt}/30"
+            sleep 5
+          done
+
+          echo "Timed out while waiting for GitLab pipeline."
+          exit 1
