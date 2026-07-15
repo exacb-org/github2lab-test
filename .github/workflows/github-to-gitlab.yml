@@ -130,3 +130,19 @@ jobs:
           echo "main_job_id=${MAIN_JOB_ID}" >> "$GITHUB_OUTPUT"
           echo "main_job_name=${MAIN_JOB_NAME}" >> "$GITHUB_OUTPUT"
           echo "main_job_url=${MAIN_JOB_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Get main GitLab job log
+        id: gitlab-job-log
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          MAIN_JOB_ID: ${{ steps.gitlab-jobs.outputs.main_job_id }}
+        run: |
+          ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
+
+          curl --fail --silent --show-error \
+            --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+            "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/jobs/${MAIN_JOB_ID}/trace" \
+            --output gitlab-job.log
+
+          echo "Main GitLab job log:"
+          cat gitlab-job.log
