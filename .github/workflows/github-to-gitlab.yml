@@ -106,9 +106,6 @@ jobs:
           exit 0
 
 
-
-
-
       - name: Get GitLab pipeline jobs
         id: gitlab-jobs
         env:
@@ -162,8 +159,6 @@ jobs:
           echo "main_job_url=${MAIN_JOB_URL}" >> "$GITHUB_OUTPUT"
 
 
-
-
       - name: Get main GitLab job log
         id: gitlab-job-log
         env:
@@ -172,10 +167,25 @@ jobs:
         run: |
           ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
 
-          curl --fail --silent --show-error \
+          if [ -z "$MAIN_JOB_ID" ]; then
+            echo "No GitLab job is available, so no job log can be retrieved."
+            echo "No GitLab job log is available." > gitlab-job.log
+            echo "log_available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if curl --fail --silent --show-error \
             --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
             "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/jobs/${MAIN_JOB_ID}/trace" \
-            --output gitlab-job.log
+            --output gitlab-job.log; then
+
+            echo "Main GitLab job log retrieved successfully."
+            echo "log_available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "The GitLab job log could not be retrieved."
+            echo "The GitLab job log could not be retrieved." > gitlab-job.log
+            echo "log_available=false" >> "$GITHUB_OUTPUT"
+          fi
 
           echo "Main GitLab job log:"
           cat gitlab-job.log
