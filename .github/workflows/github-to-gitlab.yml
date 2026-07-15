@@ -28,7 +28,8 @@ jobs:
           git remote add gitlab "$GITLAB_URL"
           git push gitlab "HEAD:refs/heads/${CI_BRANCH}"
 
-      - name: Wait for GitLab pipeline
+      - name: Wait for GitLab pipeline creation
+        id: gitlab-pipeline
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
@@ -43,10 +44,15 @@ jobs:
               "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines?ref=${CI_BRANCH}")
 
             PIPELINE_ID=$(echo "$RESPONSE" | jq -r '.[0].id // empty')
+            PIPELINE_URL=$(echo "$RESPONSE" | jq -r '.[0].web_url // empty')
 
             if [ -n "$PIPELINE_ID" ]; then
               echo "Found GitLab pipeline ID: ${PIPELINE_ID}"
-              echo "$RESPONSE"
+              echo "GitLab pipeline URL: ${PIPELINE_URL}"
+
+              echo "pipeline_id=${PIPELINE_ID}" >> "$GITHUB_OUTPUT"
+              echo "pipeline_url=${PIPELINE_URL}" >> "$GITHUB_OUTPUT"
+
               exit 0
             fi
 
