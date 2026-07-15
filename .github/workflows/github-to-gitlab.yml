@@ -189,3 +189,80 @@ jobs:
 
           echo "Main GitLab job log:"
           cat gitlab-job.log
+
+
+      - name: Create GitLab CI summary
+        if: always()
+        env:
+          PIPELINE_STATUS: ${{ steps.gitlab-result.outputs.pipeline_status }}
+          PIPELINE_ID: ${{ steps.gitlab-pipeline.outputs.pipeline_id }}
+          PIPELINE_URL: ${{ steps.gitlab-pipeline.outputs.pipeline_url }}
+          JOB_COUNT: ${{ steps.gitlab-jobs.outputs.job_count }}
+          MAIN_JOB_NAME: ${{ steps.gitlab-jobs.outputs.main_job_name }}
+          MAIN_JOB_STATUS: ${{ steps.gitlab-jobs.outputs.main_job_status }}
+          MAIN_JOB_STAGE: ${{ steps.gitlab-jobs.outputs.main_job_stage }}
+          MAIN_JOB_DURATION: ${{ steps.gitlab-jobs.outputs.main_job_duration }}
+          MAIN_JOB_URL: ${{ steps.gitlab-jobs.outputs.main_job_url }}
+        run: |
+          CI_BRANCH="ci/${GITHUB_SHA}"
+
+          case "$PIPELINE_STATUS" in
+            success)
+              STATUS_DISPLAY="✅ Success"
+              ;;
+            failed)
+              STATUS_DISPLAY="❌ Failed"
+              ;;
+            canceled)
+              STATUS_DISPLAY="⚪ Canceled"
+              ;;
+            skipped)
+              STATUS_DISPLAY="⏭️ Skipped"
+              ;;
+            timeout)
+              STATUS_DISPLAY="⏳ Timeout"
+              ;;
+            *)
+              STATUS_DISPLAY="❓ ${PIPELINE_STATUS:-Unknown}"
+              ;;
+          esac
+
+          if [ -n "$MAIN_JOB_URL" ]; then
+            JOB_LINK="[Open job](${MAIN_JOB_URL})"
+          else
+            JOB_LINK="Not available"
+          fi
+
+          if [ "$MAIN_JOB_DURATION" = "not_available" ] || [ -z "$MAIN_JOB_DURATION" ]; then
+            DURATION_DISPLAY="Not available"
+          else
+            DURATION_DISPLAY="${MAIN_JOB_DURATION} seconds"
+          fi
+
+          {
+            echo "## GitLab CI result"
+            echo
+            echo "**Status:** ${STATUS_DISPLAY}"
+            echo
+            echo "**GitHub commit SHA (commit ID):** \`${GITHUB_SHA}\`"
+            echo
+            echo "**GitLab branch:** \`${CI_BRANCH}\`"
+            echo
+            echo "**GitLab pipeline ID:** \`${PIPELINE_ID}\`"
+            echo
+            echo "**Pipeline:** [Open in GitLab](${PIPELINE_URL})"
+            echo
+            echo "### Jobs"
+            echo
+            echo "**Total jobs:** ${JOB_COUNT:-0}"
+            echo
+            echo "| Stage | Job | Status | Duration | Link |"
+            echo "|---|---|---|---|---|"
+            echo "| ${MAIN_JOB_STAGE:-Not available} | ${MAIN_JOB_NAME:-Not available} | ${MAIN_JOB_STATUS:-Not available} | ${DURATION_DISPLAY} | ${JOB_LINK} |"
+            echo
+            echo "### Main job log"
+            echo
+            echo '```text'
+            cat gitlab-job.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
