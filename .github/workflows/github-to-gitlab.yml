@@ -266,3 +266,13 @@ jobs:
             cat gitlab-job.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "GitLab CI summary created successfully."
+          echo
+          echo "Status: ${STATUS_DISPLAY}"
+          echo "GitHub commit SHA (commit ID): ${GITHUB_SHA}"
+          echo "GitLab branch: ${CI_BRANCH}"
+          echo "GitLab pipeline ID: ${PIPELINE_ID}"
+          echo "GitLab pipeline URL: ${PIPELINE_URL}"
+          echo "Main job: ${MAIN_JOB_NAME:-Not available}"
+          echo "Main job status: ${MAIN_JOB_STATUS:-Not available}"
