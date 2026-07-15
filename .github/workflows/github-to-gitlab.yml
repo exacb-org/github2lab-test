@@ -105,6 +105,10 @@ jobs:
           echo "pipeline_status=timeout" >> "$GITHUB_OUTPUT"
           exit 0
 
+
+
+
+
       - name: Get GitLab pipeline jobs
         id: gitlab-jobs
         env:
@@ -117,24 +121,48 @@ jobs:
             --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
             "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines/${PIPELINE_ID}/jobs")
 
-          echo "$JOBS_RESPONSE" | jq .
+          JOB_COUNT=$(echo "$JOBS_RESPONSE" | jq 'length')
 
-          MAIN_JOB_ID=$(echo "$JOBS_RESPONSE" | jq -r '.[0].id // empty')
-          MAIN_JOB_NAME=$(echo "$JOBS_RESPONSE" | jq -r '.[0].name // empty')
-          MAIN_JOB_URL=$(echo "$JOBS_RESPONSE" | jq -r '.[0].web_url // empty')
+          echo "GitLab jobs found: ${JOB_COUNT}"
 
-          if [ -z "$MAIN_JOB_ID" ]; then
-            echo "No GitLab jobs were found."
-            exit 1
+          if [ "$JOB_COUNT" -eq 0 ]; then
+            echo "No GitLab jobs were found for this pipeline."
+
+            echo "job_count=0" >> "$GITHUB_OUTPUT"
+            echo "main_job_id=" >> "$GITHUB_OUTPUT"
+            echo "main_job_name=No job available" >> "$GITHUB_OUTPUT"
+            echo "main_job_status=not_available" >> "$GITHUB_OUTPUT"
+            echo "main_job_stage=not_available" >> "$GITHUB_OUTPUT"
+            echo "main_job_duration=not_available" >> "$GITHUB_OUTPUT"
+            echo "main_job_url=" >> "$GITHUB_OUTPUT"
+
+            exit 0
           fi
+
+          MAIN_JOB_ID=$(echo "$JOBS_RESPONSE" | jq -r '.[0].id')
+          MAIN_JOB_NAME=$(echo "$JOBS_RESPONSE" | jq -r '.[0].name')
+          MAIN_JOB_STATUS=$(echo "$JOBS_RESPONSE" | jq -r '.[0].status')
+          MAIN_JOB_STAGE=$(echo "$JOBS_RESPONSE" | jq -r '.[0].stage')
+          MAIN_JOB_DURATION=$(echo "$JOBS_RESPONSE" | jq -r '.[0].duration // "not_available"')
+          MAIN_JOB_URL=$(echo "$JOBS_RESPONSE" | jq -r '.[0].web_url')
 
           echo "Main GitLab job ID: ${MAIN_JOB_ID}"
           echo "Main GitLab job name: ${MAIN_JOB_NAME}"
+          echo "Main GitLab job status: ${MAIN_JOB_STATUS}"
+          echo "Main GitLab job stage: ${MAIN_JOB_STAGE}"
+          echo "Main GitLab job duration: ${MAIN_JOB_DURATION}"
           echo "Main GitLab job URL: ${MAIN_JOB_URL}"
 
+          echo "job_count=${JOB_COUNT}" >> "$GITHUB_OUTPUT"
           echo "main_job_id=${MAIN_JOB_ID}" >> "$GITHUB_OUTPUT"
           echo "main_job_name=${MAIN_JOB_NAME}" >> "$GITHUB_OUTPUT"
+          echo "main_job_status=${MAIN_JOB_STATUS}" >> "$GITHUB_OUTPUT"
+          echo "main_job_stage=${MAIN_JOB_STAGE}" >> "$GITHUB_OUTPUT"
+          echo "main_job_duration=${MAIN_JOB_DURATION}" >> "$GITHUB_OUTPUT"
           echo "main_job_url=${MAIN_JOB_URL}" >> "$GITHUB_OUTPUT"
+
+
+
 
       - name: Get main GitLab job log
         id: gitlab-job-log
