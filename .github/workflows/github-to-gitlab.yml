@@ -99,3 +99,34 @@ jobs:
 
           echo "Timed out while waiting for GitLab pipeline."
           exit 1
+
+      - name: Get GitLab pipeline jobs
+        id: gitlab-jobs
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          PIPELINE_ID: ${{ steps.gitlab-pipeline.outputs.pipeline_id }}
+        run: |
+          ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
+
+          JOBS_RESPONSE=$(curl --fail --silent --show-error \
+            --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+            "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines/${PIPELINE_ID}/jobs")
+
+          echo "$JOBS_RESPONSE" | jq .
+
+          MAIN_JOB_ID=$(echo "$JOBS_RESPONSE" | jq -r '.[0].id // empty')
+          MAIN_JOB_NAME=$(echo "$JOBS_RESPONSE" | jq -r '.[0].name // empty')
+          MAIN_JOB_URL=$(echo "$JOBS_RESPONSE" | jq -r '.[0].web_url // empty')
+
+          if [ -z "$MAIN_JOB_ID" ]; then
+            echo "No GitLab jobs were found."
+            exit 1
+          fi
+
+          echo "Main GitLab job ID: ${MAIN_JOB_ID}"
+          echo "Main GitLab job name: ${MAIN_JOB_NAME}"
+          echo "Main GitLab job URL: ${MAIN_JOB_URL}"
+
+          echo "main_job_id=${MAIN_JOB_ID}" >> "$GITHUB_OUTPUT"
+          echo "main_job_name=${MAIN_JOB_NAME}" >> "$GITHUB_OUTPUT"
+          echo "main_job_url=${MAIN_JOB_URL}" >> "$GITHUB_OUTPUT"
