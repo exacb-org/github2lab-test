@@ -10,13 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Download GitHub repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+
       - name: Show current commit ID
         run: git rev-parse HEAD
+
 
       - name: Push commit to GitLab CI branch
         env:
@@ -27,6 +30,7 @@ jobs:
 
           git remote add gitlab "$GITLAB_URL"
           git push gitlab "HEAD:refs/heads/${CI_BRANCH}"
+
 
       - name: Wait for GitLab pipeline creation
         id: gitlab-pipeline
@@ -63,7 +67,9 @@ jobs:
           echo "GitLab pipeline was not found."
           exit 1
 
+
       - name: Wait for GitLab pipeline result
+        id: gitlab-result
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           PIPELINE_ID: ${{ steps.gitlab-pipeline.outputs.pipeline_id }}
@@ -81,24 +87,23 @@ jobs:
 
             echo "Current GitLab pipeline status: ${PIPELINE_STATUS}"
 
-            if [ "$PIPELINE_STATUS" = "success" ]; then
-              echo "GitLab pipeline passed."
-              exit 0
-            fi
-
-            if [ "$PIPELINE_STATUS" = "failed" ] || \
+            if [ "$PIPELINE_STATUS" = "success" ] || \
+               [ "$PIPELINE_STATUS" = "failed" ] || \
                [ "$PIPELINE_STATUS" = "canceled" ] || \
                [ "$PIPELINE_STATUS" = "skipped" ]; then
+
               echo "GitLab pipeline finished with status: ${PIPELINE_STATUS}"
-              exit 1
+              echo "pipeline_status=${PIPELINE_STATUS}" >> "$GITHUB_OUTPUT"
+              exit 0
             fi
 
             echo "Pipeline is still running. Attempt ${attempt}/30"
             sleep 5
           done
 
-          echo "Timed out while waiting for GitLab pipeline."
-          exit 1
+          echo "GitLab pipeline timed out."
+          echo "pipeline_status=timeout" >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Get GitLab pipeline jobs
         id: gitlab-jobs
