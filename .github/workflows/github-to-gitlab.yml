@@ -28,15 +28,31 @@ jobs:
           git remote add gitlab "$GITLAB_URL"
           git push gitlab "HEAD:refs/heads/${CI_BRANCH}"
 
-      - name: Find GitLab pipeline
+      - name: Wait for GitLab pipeline
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
           CI_BRANCH="ci/${GITHUB_SHA}"
 
-          echo "Looking for GitLab pipeline for branch: ${CI_BRANCH}"
+          echo "Waiting for GitLab pipeline for branch: ${CI_BRANCH}"
 
-          curl --fail --silent --show-error \
-            --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
-            "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines?ref=${CI_BRANCH}"
+          for attempt in {1..10}; do
+            RESPONSE=$(curl --fail --silent --show-error \
+              --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+              "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines?ref=${CI_BRANCH}")
+
+            PIPELINE_ID=$(echo "$RESPONSE" | jq -r '.[0].id // empty')
+
+            if [ -n "$PIPELINE_ID" ]; then
+              echo "Found GitLab pipeline ID: ${PIPELINE_ID}"
+              echo "$RESPONSE"
+              exit 0
+            fi
+
+            echo "Pipeline not created yet. Attempt ${attempt}/10"
+            sleep 5
+          done
+
+          echo "GitLab pipeline was not found."
+          exit 1
