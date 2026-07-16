@@ -290,9 +290,9 @@ jobs:
           echo "Final GitLab pipeline status: ${PIPELINE_STATUS}"
 
           if [ "$PIPELINE_STATUS" = "success" ]; then
-            echo "GitLab pipeline succeeded. GitHub workflow will stay green."
+            echo "GitLab pipeline succeeded. GitHub workflow is successful."
             exit 0
           fi
 
-          echo "GitLab pipeline did not succeed. GitHub workflow will fail."
+          echo "GitLab pipeline did not succeed. Marking GitHub workflow as failed."
           exit 1
