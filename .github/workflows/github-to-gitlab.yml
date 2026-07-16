@@ -280,3 +280,19 @@ jobs:
           echo "GitLab pipeline URL: ${PIPELINE_URL}"
           echo "Main job: ${MAIN_JOB_NAME:-Not available}"
           echo "Main job status: ${MAIN_JOB_STATUS:-Not available}"
+
+
+      - name: Set final GitHub workflow status
+        if: always()
+        env:
+          PIPELINE_STATUS: ${{ steps.gitlab-result.outputs.pipeline_status }}
+        run: |
+          echo "Final GitLab pipeline status: ${PIPELINE_STATUS}"
+
+          if [ "$PIPELINE_STATUS" = "success" ]; then
+            echo "GitLab pipeline succeeded. GitHub workflow will stay green."
+            exit 0
+          fi
+
+          echo "GitLab pipeline did not succeed. GitHub workflow will fail."
+          exit 1
