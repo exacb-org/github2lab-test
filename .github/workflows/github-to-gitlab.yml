@@ -270,8 +270,11 @@ jobs:
             LOG_SUMMARY_LIMIT_BYTES=800000
             LOG_SIZE_BYTES=$(wc -c < gitlab-job-clean.log)
 
-            echo "**Log size:** ${LOG_SIZE_BYTES} bytes"
-            echo "**Summary log limit:** ${LOG_SUMMARY_LIMIT_BYTES} bytes"
+            LOG_SIZE_KIB=$(awk "BEGIN {printf \"%.1f\", ${LOG_SIZE_BYTES}/1024}")
+            LOG_SUMMARY_LIMIT_KIB=$(awk "BEGIN {printf \"%.1f\", ${LOG_SUMMARY_LIMIT_BYTES}/1024}")
+
+            echo "**Current log size:** ${LOG_SIZE_BYTES} bytes (~${LOG_SIZE_KIB} KiB)"
+            echo "**Maximum log size allowed in summary:** ${LOG_SUMMARY_LIMIT_BYTES} bytes (~${LOG_SUMMARY_LIMIT_KIB} KiB)"
             echo
 
             if [ "$LOG_SIZE_BYTES" -le "$LOG_SUMMARY_LIMIT_BYTES" ]; then
