@@ -266,9 +266,23 @@ jobs:
             echo
             echo "### Main job log"
             echo
-            echo '```text'
-            cat gitlab-job-clean.log
-            echo '```'
+
+            LOG_SUMMARY_LIMIT_BYTES=800000
+            LOG_SIZE_BYTES=$(wc -c < gitlab-job-clean.log)
+
+            echo "**Log size:** ${LOG_SIZE_BYTES} bytes"
+            echo "**Summary log limit:** ${LOG_SUMMARY_LIMIT_BYTES} bytes"
+            echo
+
+            if [ "$LOG_SIZE_BYTES" -le "$LOG_SUMMARY_LIMIT_BYTES" ]; then
+              echo '```text'
+              cat gitlab-job-clean.log
+              echo '```'
+            else
+              echo "Log is too large to show in GitHub Summary."
+              echo
+              echo "Please open the GitLab job link above to view the full log."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo "GitLab CI summary created successfully."
