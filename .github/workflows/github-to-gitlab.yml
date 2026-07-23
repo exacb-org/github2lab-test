@@ -29,43 +29,46 @@ jobs:
           GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git"
 
           git remote add gitlab "$GITLAB_URL"
-          git push gitlab "HEAD:refs/heads/${CI_BRANCH}"
+          git push -o ci.skip gitlab "HEAD:refs/heads/${CI_BRANCH}"
 
 
-      - name: Wait for GitLab pipeline creation
-        id: gitlab-pipeline
+      - name: Trigger GitLab pipeline with variables
+        id: trigger-gitlab-pipeline
         env:
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_TRIGGER_TOKEN: ${{ secrets.GITLAB_TRIGGER_TOKEN }}
+          GITLAB_PROJECT_ID: ${{ vars.GITLAB_PROJECT_ID }}
         run: |
-          ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
           CI_BRANCH="ci/${GITHUB_SHA}"
 
-          echo "Waiting for GitLab pipeline for branch: ${CI_BRANCH}"
+          echo "Triggering GitLab pipeline on branch: ${CI_BRANCH}"
 
-          for attempt in {1..10}; do
-            RESPONSE=$(curl --fail --silent --show-error \
-              --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
-              "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines?ref=${CI_BRANCH}")
+          RESPONSE=$(curl --silent --fail --request POST \
+            --form token="${GITLAB_TRIGGER_TOKEN}" \
+            --form ref="${CI_BRANCH}" \
+            --form "variables[GITHUB_COMMIT_SHA]=${GITHUB_SHA}" \
+            --form "variables[GITHUB_REPOSITORY]=${GITHUB_REPOSITORY}" \
+            --form "variables[GITHUB_RUN_ID]=${GITHUB_RUN_ID}" \
+            "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${GITLAB_PROJECT_ID}/trigger/pipeline")
 
-            PIPELINE_ID=$(echo "$RESPONSE" | jq -r '.[0].id // empty')
-            PIPELINE_URL=$(echo "$RESPONSE" | jq -r '.[0].web_url // empty')
+          PIPELINE_ID=$(echo "$RESPONSE" | jq -r '.id')
+          PIPELINE_URL=$(echo "$RESPONSE" | jq -r '.web_url')
 
-            if [ -n "$PIPELINE_ID" ]; then
-              echo "Found GitLab pipeline ID: ${PIPELINE_ID}"
-              echo "GitLab pipeline URL: ${PIPELINE_URL}"
+          echo "GitLab pipeline ID: ${PIPELINE_ID}"
+          echo "GitLab pipeline URL: ${PIPELINE_URL}"
 
-              echo "pipeline_id=${PIPELINE_ID}" >> "$GITHUB_OUTPUT"
-              echo "pipeline_url=${PIPELINE_URL}" >> "$GITHUB_OUTPUT"
+          echo "pipeline_id=${PIPELINE_ID}" >> "$GITHUB_OUTPUT"
+          echo "pipeline_url=${PIPELINE_URL}" >> "$GITHUB_OUTPUT"
 
-              exit 0
-            fi
 
-            echo "Pipeline not created yet. Attempt ${attempt}/10"
-            sleep 5
-          done
+      - name: Save triggered GitLab pipeline
+        id: gitlab-pipeline
+        run: |
+          echo "pipeline_id=${{ steps.trigger-gitlab-pipeline.outputs.pipeline_id }}" >> "$GITHUB_OUTPUT"
+          echo "pipeline_url=${{ steps.trigger-gitlab-pipeline.outputs.pipeline_url }}" >> "$GITHUB_OUTPUT"
 
-          echo "GitLab pipeline was not found."
-          exit 1
+          echo "Using triggered GitLab pipeline:"
+          echo "Pipeline ID: ${{ steps.trigger-gitlab-pipeline.outputs.pipeline_id }}"
+          echo "Pipeline URL: ${{ steps.trigger-gitlab-pipeline.outputs.pipeline_url }}"
 
 
       - name: Wait for GitLab pipeline result
