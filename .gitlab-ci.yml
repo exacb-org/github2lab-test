@@ -10,3 +10,4 @@ test-python:
     - 'echo "GitHub commit SHA: ${GITHUB_COMMIT_SHA}"'
     - 'echo "GitHub repository: ${GITHUB_REPOSITORY}"'
     - 'echo "GitHub run ID: ${GITHUB_RUN_ID}"'
+    - exit 1
