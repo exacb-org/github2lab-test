@@ -31,7 +31,10 @@ jobs:
           git remote add gitlab "$GITLAB_URL"
           git push -o ci.skip gitlab "HEAD:refs/heads/${CI_BRANCH}"
 
-
+          
+      # Push uses ci.skip so GitLab does not start a duplicate pipeline.
+      # The pipeline is started explicitly through the GitLab Trigger API,
+      # which also passes GitHub metadata as GitLab CI variables.
       - name: Trigger GitLab pipeline with variables
         id: trigger-gitlab-pipeline
         env:
@@ -39,37 +42,44 @@ jobs:
           GITLAB_PROJECT_ID: ${{ vars.GITLAB_PROJECT_ID }}
         run: |
           CI_BRANCH="ci/${GITHUB_SHA}"
+          RESPONSE_FILE="gitlab-trigger-response.json"
 
-          echo "Triggering GitLab pipeline"
-          echo "GitLab project ID: ${GITLAB_PROJECT_ID}"
-          echo "GitLab branch: ${CI_BRANCH}"
+          echo "Triggering GitLab pipeline for branch ${CI_BRANCH}..."
 
-          curl --show-error --silent --request POST \
+          HTTP_STATUS=$(curl --show-error --silent --request POST \
             --form token="${GITLAB_TRIGGER_TOKEN}" \
             --form ref="${CI_BRANCH}" \
             --form "variables[GITHUB_COMMIT_SHA]=${GITHUB_SHA}" \
             --form "variables[GITHUB_REPOSITORY]=${GITHUB_REPOSITORY}" \
             --form "variables[GITHUB_RUN_ID]=${GITHUB_RUN_ID}" \
-            --output gitlab-trigger-response.json \
-            --write-out "HTTP status: %{http_code}\n" \
-            "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${GITLAB_PROJECT_ID}/trigger/pipeline"
+            --output "${RESPONSE_FILE}" \
+            --write-out "%{http_code}" \
+            "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${GITLAB_PROJECT_ID}/trigger/pipeline")
 
-          echo "GitLab API response:"
-          cat gitlab-trigger-response.json
-
-          PIPELINE_ID=$(jq -r '.id // empty' gitlab-trigger-response.json)
-          PIPELINE_URL=$(jq -r '.web_url // empty' gitlab-trigger-response.json)
-
-          if [ -z "$PIPELINE_ID" ]; then
-            echo "GitLab pipeline was not created."
+          if [ "${HTTP_STATUS}" != "201" ]; then
+            echo "Failed to trigger GitLab pipeline."
+            echo "HTTP status: ${HTTP_STATUS}"
+            echo "GitLab API response:"
+            cat "${RESPONSE_FILE}"
             exit 1
           fi
 
-          echo "GitLab pipeline ID: ${PIPELINE_ID}"
-          echo "GitLab pipeline URL: ${PIPELINE_URL}"
+          PIPELINE_ID=$(jq -r '.id // empty' "${RESPONSE_FILE}")
+          PIPELINE_URL=$(jq -r '.web_url // empty' "${RESPONSE_FILE}")
 
-          echo "pipeline_id=${PIPELINE_ID}" >> "$GITHUB_OUTPUT"
-          echo "pipeline_url=${PIPELINE_URL}" >> "$GITHUB_OUTPUT"
+          if [ -z "${PIPELINE_ID}" ]; then
+            echo "GitLab pipeline was triggered, but no pipeline ID was returned."
+            echo "GitLab API response:"
+            cat "${RESPONSE_FILE}"
+            exit 1
+          fi
+
+          echo "GitLab pipeline created successfully."
+          echo "Pipeline ID: ${PIPELINE_ID}"
+          echo "Pipeline URL: ${PIPELINE_URL}"
+
+          echo "pipeline_id=${PIPELINE_ID}" >> "${GITHUB_OUTPUT}"
+          echo "pipeline_url=${PIPELINE_URL}" >> "${GITHUB_OUTPUT}"
 
 
       - name: Save triggered GitLab pipeline
