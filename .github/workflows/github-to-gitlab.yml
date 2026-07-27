@@ -101,6 +101,22 @@ jobs:
         run: |
           ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
 
+          cancel_gitlab_pipeline() {
+            echo "GitHub workflow cancellation detected. Cancelling GitLab pipeline ${PIPELINE_ID}..."
+
+            CANCEL_RESPONSE=$(curl --silent --show-error --request POST \
+              --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+              "https://gitlab.jsc.fz-juelich.de/api/v4/projects/${ENCODED_PROJECT_PATH}/pipelines/${PIPELINE_ID}/cancel" || true)
+
+            CANCEL_STATUS=$(echo "${CANCEL_RESPONSE}" | jq -r '.status // "unknown"' 2>/dev/null || echo "unknown")
+
+            echo "GitLab cancel request accepted. Returned status: ${CANCEL_STATUS}"
+
+            exit 130
+          }
+
+          trap cancel_gitlab_pipeline INT TERM
+
           echo "Waiting for GitLab pipeline ${PIPELINE_ID} to finish"
 
           for attempt in {1..30}; do

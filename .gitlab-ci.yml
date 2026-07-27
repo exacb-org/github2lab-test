@@ -1,7 +1,6 @@
 stages:
   - test
   
-
 test-python:
   stage: test
   tags:
