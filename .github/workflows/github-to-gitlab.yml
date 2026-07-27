@@ -93,6 +93,7 @@ jobs:
           echo "Pipeline URL: ${{ steps.trigger-gitlab-pipeline.outputs.pipeline_url }}"
 
 
+          
       - name: Wait for GitLab pipeline result
         id: gitlab-result
         env:
