@@ -103,6 +103,7 @@ jobs:
           ENCODED_PROJECT_PATH="exacb%2Ffahmin-experiments%2Fgithubci%2Fgithub2lab-test"
 
           cancel_gitlab_pipeline() {
+            trap - INT TERM
             echo "GitHub workflow cancellation detected. Cancelling GitLab pipeline ${PIPELINE_ID}..."
 
             CANCEL_RESPONSE=$(curl --silent --show-error --request POST \
