@@ -371,7 +371,8 @@ jobs:
           echo "Final GitLab pipeline status: ${PIPELINE_STATUS}"
 
           if [ -z "$PIPELINE_STATUS" ]; then
-            echo "GitHub workflow was cancelled before a final GitLab pipeline status was available."
+            echo "GitHub workflow was cancelled before it could finish reading the final GitLab pipeline status."
+            echo "A GitLab cancel request was sent from the 'Wait for GitLab pipeline result' step."
             exit 1
           fi
 
