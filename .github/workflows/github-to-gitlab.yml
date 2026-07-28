@@ -327,6 +327,10 @@ jobs:
             echo "### Main job log"
             echo
 
+            if [ ! -f gitlab-job-clean.log ]; then
+              echo "GitLab job log is not available because the GitHub workflow was cancelled before the log step completed." > gitlab-job-clean.log
+            fi
+
             LOG_SUMMARY_LIMIT_BYTES=800000
             LOG_SIZE_BYTES=$(wc -c < gitlab-job-clean.log)
 
@@ -366,9 +370,19 @@ jobs:
         run: |
           echo "Final GitLab pipeline status: ${PIPELINE_STATUS}"
 
+          if [ -z "$PIPELINE_STATUS" ]; then
+            echo "GitHub workflow was cancelled before a final GitLab pipeline status was available."
+            exit 1
+          fi
+
           if [ "$PIPELINE_STATUS" = "success" ]; then
             echo "GitLab pipeline succeeded. GitHub workflow is successful."
             exit 0
+          fi
+
+          if [ "$PIPELINE_STATUS" = "canceled" ]; then
+            echo "GitLab pipeline was canceled."
+            exit 1
           fi
 
           echo "GitLab pipeline did not succeed. Marking GitHub workflow as failed."
