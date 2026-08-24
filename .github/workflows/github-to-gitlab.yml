@@ -20,10 +20,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Download clusterhop
+        uses: actions/checkout@v6
+        with:
+          repository: exacb-org/clusterhop
+          ref: fba640ca254fa12a665e87a6102a90d16e342ed1
+          path: clusterhop
+          token: ${{ secrets.CLUSTERHOP_READ_TOKEN }}
+
       - name: Install clusterhop
-        run: >-
-          python -m pip install
-          "clusterhop @ git+https://github.com/exacb-org/clusterhop.git@fba640ca254fa12a665e87a6102a90d16e342ed1"
+        run: python -m pip install ./clusterhop
 
       - name: Run GitHub-to-GitLab bridge
         env:
