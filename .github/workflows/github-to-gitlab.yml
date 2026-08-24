@@ -36,11 +36,10 @@ jobs:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           GITLAB_REMOTE_URL: https://gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git
         run: |
-          AUTH_HEADER="$(printf 'oauth2:%s' "$GITLAB_TOKEN" | base64 | tr -d '\n')"
-
-          if git -c "http.extraHeader=Authorization: Basic ${AUTH_HEADER}" \
+          if git -c credential.helper= \
+            -c 'credential.helper=!f() { printf "%s\n" "username=oauth2" "password=$GITLAB_TOKEN"; }; f' \
             push --dry-run --push-option=ci.skip "$GITLAB_REMOTE_URL" \
-            "HEAD:refs/heads/ci/${GITHUB_SHA}"; then
+            "HEAD:refs/heads/ci/${GITHUB_SHA}" >/dev/null 2>&1; then
             echo "GitLab dry-run push succeeded."
           else
             echo "GitLab dry-run push failed."
