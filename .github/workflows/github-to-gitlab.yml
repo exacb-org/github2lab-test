@@ -39,7 +39,7 @@ jobs:
           if git -c credential.helper= \
             -c 'credential.helper=!f() { printf "%s\n" "username=oauth2" "password=$GITLAB_TOKEN"; }; f' \
             push --dry-run --push-option=ci.skip "$GITLAB_REMOTE_URL" \
-            "HEAD:refs/heads/ci/${GITHUB_SHA}" >/dev/null 2>&1; then
+            "HEAD:refs/heads/ci/${GITHUB_SHA}"; then
             echo "GitLab dry-run push succeeded."
           else
             echo "GitLab dry-run push failed."
