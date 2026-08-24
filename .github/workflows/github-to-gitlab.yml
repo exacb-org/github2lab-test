@@ -43,5 +43,15 @@ jobs:
           from clusterhop.github2lab.runner import run_from_environment
 
           result = run_from_environment(repository_path=".")
+          print(f"Runner status: {result.status}")
+          print(f"GitLab branch: {result.branch_name}")
+
+          if result.pipeline is not None:
+              print(f"Pipeline ID: {result.pipeline.id}")
+              print(f"Pipeline status: {result.pipeline.status}")
+
+          if result.error_message:
+              print(f"Runner error: {result.error_message}")
+
           raise SystemExit(result.exit_code)
           PY
