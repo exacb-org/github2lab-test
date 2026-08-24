@@ -31,6 +31,22 @@ jobs:
       - name: Install clusterhop
         run: python -m pip install ./clusterhop
 
+      - name: Preflight GitLab remote access
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_REMOTE_URL: https://gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git
+        run: |
+          AUTH_HEADER="$(printf 'oauth2:%s' "$GITLAB_TOKEN" | base64 | tr -d '\n')"
+
+          if git -c "http.extraHeader=Authorization: Basic ${AUTH_HEADER}" \
+            push --dry-run --push-option=ci.skip "$GITLAB_REMOTE_URL" \
+            "HEAD:refs/heads/ci/${GITHUB_SHA}"; then
+            echo "GitLab dry-run push succeeded."
+          else
+            echo "GitLab dry-run push failed."
+            exit 1
+          fi
+
       - name: Run GitHub-to-GitLab bridge
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
