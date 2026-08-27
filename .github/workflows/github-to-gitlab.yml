@@ -54,7 +54,7 @@ jobs:
           GITLAB_URL: https://gitlab.jsc.fz-juelich.de
           GITLAB_REMOTE_URL: https://gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git
         run: |
-          python - <<'PY'
+          exec python - <<'PY'
           from clusterhop.github2lab.runner import run_from_environment
 
           result = run_from_environment(repository_path=".")
