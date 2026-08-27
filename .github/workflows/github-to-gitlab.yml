@@ -53,7 +53,6 @@ jobs:
           GITLAB_PROJECT_ID: ${{ vars.GITLAB_PROJECT_ID }}
           GITLAB_URL: https://gitlab.jsc.fz-juelich.de
           GITLAB_REMOTE_URL: https://gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git
-          CLUSTERHOP_PIPELINE_TIMEOUT_SECONDS: "30"
         run: |
           exec python - <<'PY'
           from clusterhop.github2lab.runner import run_from_environment
