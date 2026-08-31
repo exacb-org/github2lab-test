@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: exacb-org/clusterhop
-          ref: fba640ca254fa12a665e87a6102a90d16e342ed1
+          ref: 0cb059fa15d9bbe073eb4c3cdddd24d87f545a60
           path: clusterhop
           token: ${{ secrets.CLUSTERHOP_READ_TOKEN }}
 
@@ -53,6 +53,7 @@ jobs:
           GITLAB_PROJECT_ID: ${{ vars.GITLAB_PROJECT_ID }}
           GITLAB_URL: https://gitlab.jsc.fz-juelich.de
           GITLAB_REMOTE_URL: https://gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git
+          CLUSTERHOP_PIPELINE_STATE_FILE: ${{ runner.temp }}/github2lab-pipeline-state.json
         run: |
           exec python - <<'PY'
           from clusterhop.github2lab.runner import run_from_environment
@@ -70,3 +71,14 @@ jobs:
 
           raise SystemExit(result.exit_code)
           PY
+
+      - name: Fallback GitLab cancellation
+        if: ${{ cancelled() }}
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_TRIGGER_TOKEN: ${{ secrets.GITLAB_TRIGGER_TOKEN }}
+          GITLAB_PROJECT_ID: ${{ vars.GITLAB_PROJECT_ID }}
+          GITLAB_URL: https://gitlab.jsc.fz-juelich.de
+          GITLAB_REMOTE_URL: https://gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git
+          CLUSTERHOP_PIPELINE_STATE_FILE: ${{ runner.temp }}/github2lab-pipeline-state.json
+        run: python -m clusterhop.github2lab.fallback
