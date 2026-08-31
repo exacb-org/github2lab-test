@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: exacb-org/clusterhop
-          ref: 0cb059fa15d9bbe073eb4c3cdddd24d87f545a60
+          ref: c1cb6a4145d6acb45ec1a4c613b7afa9c979e08e
           path: clusterhop
           token: ${{ secrets.CLUSTERHOP_READ_TOKEN }}
 
