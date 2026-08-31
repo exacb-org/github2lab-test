@@ -54,7 +54,6 @@ jobs:
           GITLAB_URL: https://gitlab.jsc.fz-juelich.de
           GITLAB_REMOTE_URL: https://gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git
           CLUSTERHOP_PIPELINE_STATE_FILE: ${{ runner.temp }}/github2lab-pipeline-state.json
-          CLUSTERHOP_PIPELINE_TIMEOUT_SECONDS: "30"
         run: |
           exec python - <<'PY'
           from clusterhop.github2lab.runner import run_from_environment
