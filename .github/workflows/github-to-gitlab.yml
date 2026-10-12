@@ -22,4 +22,6 @@ jobs:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           GITLAB_REMOTE_URL: https://gitlab.jsc.fz-juelich.de/
           GITLAB_PROJECT_URI: exacb/example
+          JSC_MACHINE: jupiter # It should set CLUSTERHOP_JUPITER_RUN==true before triggering GitLab CI
+          JSC_MACHINE: jureca # It should set CLUSTERHOP_JURECA_RUN==true before triggering GitLab CI
           
