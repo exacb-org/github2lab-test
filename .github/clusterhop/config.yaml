@@ -1,0 +1,4 @@
+destination_type: gitlab
+gitlab_url: https://gitlab.jsc.fz-juelich.de
+gitlab_project_id: 8894
+gitlab_remote_url: https://gitlab.jsc.fz-juelich.de/exacb/fahmin-experiments/githubci/github2lab-test.git
