@@ -1,10 +1,16 @@
 stages:
   - test
-  
+
 test-python:
+  id_tokens:
+    SITE_ID_TOKEN:
+      aud: "https://gitlab.jsc.fz-juelich.de"
   stage: test
   tags:
-    - fahmin
+    - jureca
+    - jacamar
+    - login
+    - shell
   script:
     - python3 main.py
     - 'echo "GitHub commit SHA: ${GITHUB_COMMIT_SHA}"'
