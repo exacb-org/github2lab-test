@@ -1,6 +1,7 @@
 stages:
   - test
   - verify
+  - finalize
 
 test-python:
   id_tokens:
@@ -30,8 +31,7 @@ test-additional-success:
     - shell
   allow_failure: false
   script:
-    - 'echo "ClusterHop live test 6: Intentional dependency failure"'
-    - exit 1
+    - 'echo "ClusterHop live test 7: Additional test passed"'
 
 verify-results:
   id_tokens:
@@ -49,3 +49,19 @@ verify-results:
   allow_failure: false
   script:
     - 'echo "ClusterHop live test 5: Dependencies passed"'
+
+finalize-results:
+  id_tokens:
+    SITE_ID_TOKEN:
+      aud: "https://gitlab.jsc.fz-juelich.de"
+  stage: finalize
+  tags:
+    - jureca
+    - jacamar
+    - login
+    - shell
+  needs:
+    - job: verify-results
+  allow_failure: false
+  script:
+    - 'echo "ClusterHop live test 7: Final stage succeeded"'
