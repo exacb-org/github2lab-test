@@ -26,4 +26,4 @@ jobs:
           jsc-machine: jureca
           secrets-file: .github/clusterhop/secrets.keyloom.yaml
         env:
-          KEYLOOM_PASSWORD: "clusterhop-intentionally-wrong-test-password"
+          KEYLOOM_PASSWORD: ${{ secrets.KEYLOOM_PASSWORD }}
