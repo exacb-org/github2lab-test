@@ -6,8 +6,6 @@ test-python:
     SITE_ID_TOKEN:
       aud: "https://gitlab.jsc.fz-juelich.de"
   stage: test
-  when: manual
-  allow_failure: false
   tags:
     - jureca
     - jacamar
