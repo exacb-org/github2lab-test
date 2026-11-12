@@ -48,7 +48,8 @@ verify-results:
     - job: test-additional-success
   allow_failure: false
   script:
-    - 'echo "ClusterHop live test 5: Dependencies passed"'
+    - 'echo "ClusterHop live test 8: Intermediate verification failure"'
+    - exit 1
 
 finalize-results:
   id_tokens:
