@@ -21,7 +21,7 @@ jobs:
       - name: Run ClusterHop
         uses: exacb-org/clusterhop@8243139a8b631b51e9363043c6320ce956d209dd
         with:
-          gitlab-url: https://gitlab.jsc.fz-juelich.de
+          gitlab-url: https://gitlab.invalid
           gitlab-project: exacb/fahmin-experiments/githubci/github2lab-test
           secrets-file: .github/clusterhop/secrets.keyloom.yaml
         env:
