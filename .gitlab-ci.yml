@@ -30,7 +30,8 @@ test-additional-success:
     - shell
   allow_failure: false
   script:
-    - 'echo "ClusterHop live test 5: Additional test passed"'
+    - 'echo "ClusterHop live test 6: Intentional dependency failure"'
+    - exit 1
 
 verify-results:
   id_tokens:
