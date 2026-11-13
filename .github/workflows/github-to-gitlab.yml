@@ -23,6 +23,7 @@ jobs:
         with:
           gitlab-url: https://gitlab.jsc.fz-juelich.de
           gitlab-project: exacb/fahmin-experiments/githubci/github2lab-test
+          jsc-machine: jureca
           secrets-file: .github/clusterhop/secrets.keyloom.yaml
         env:
           KEYLOOM_PASSWORD: ${{ secrets.KEYLOOM_PASSWORD }}
