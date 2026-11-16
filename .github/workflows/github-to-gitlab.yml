@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run ClusterHop
-        uses: exacb-org/clusterhop@b6cb57da28e4d826dc8ce654e86521c9b878c130
+        uses: exacb-org/clusterhop@1e8abe7d0d75e00b8247ff0dfa47ae294e2f25f2
         with:
           gitlab-url: https://gitlab.jsc.fz-juelich.de
           gitlab-project: exacb/fahmin-experiments/githubci/github2lab-test
