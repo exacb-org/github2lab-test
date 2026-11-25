@@ -19,11 +19,11 @@ jobs:
           fetch-depth: 0
 
       - name: Run ClusterHop
-        uses: exacb-org/clusterhop@v0.2.0
+        uses: exacb-org/clusterhop@c41a9e1f4df396cd0f8ff46aa10410e02946ceed
         with:
           gitlab-url: https://gitlab.jsc.fz-juelich.de
           gitlab-project: exacb/fahmin-experiments/githubci/github2lab-test
-          jsc-machine: jureca
+          preset-machine: jureca
           secrets-file: .github/clusterhop/secrets.keyloom.yaml
         env:
-          KEYLOOM_PASSWORD: ${{ secrets.KEYLOOM_PASSWORD }}
+          CLUSTERHOP_SECRETS_PASSWORD: ${{ secrets.CLUSTERHOP_SECRETS_PASSWORD }}
